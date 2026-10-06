@@ -3,288 +3,169 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Interactive Website</title>
+<title>3D Website</title>
 
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-body{
-    background:#050816;
-    font-family:Arial, sans-serif;
-    overflow-x:hidden;
+body {
+    overflow: hidden;
+    background: #050816;
+    font-family: Arial, sans-serif;
 }
 
-#canvas-container{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    z-index:1;
+#canvas-container {
+    position: fixed;
+    width: 100%;
+    height: 100%;
 }
 
-.hero{
-    position:fixed;
-    top:50%;
-    left:8%;
-    transform:translateY(-50%);
-    color:white;
-    z-index:10;
-    pointer-events:none;
+.hero {
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    transform: translateY(-50%);
+    color: white;
+    z-index: 10;
 }
 
-.hero h1{
-    font-size:4rem;
-    margin-bottom:20px;
+.hero h1 {
+    font-size: 4rem;
+    margin-bottom: 20px;
 }
 
-.hero p{
-    font-size:1.3rem;
-    color:#b6c4ff;
+.hero p {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    color: #b8c5ff;
 }
 
-.section{
-    height:100vh;
+button {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 50px;
+    background: #4f46e5;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: .3s;
 }
 
-.scroll-indicator{
-    position:fixed;
-    bottom:40px;
-    left:50%;
-    transform:translateX(-50%);
-    color:white;
-    z-index:10;
-    opacity:.8;
+button:hover {
+    background: #6366f1;
+    transform: translateY(-3px);
 }
 </style>
 </head>
-
 <body>
 
 <div id="canvas-container"></div>
 
 <div class="hero">
     <h1>Future 3D Experience</h1>
-    <p>Mouse + Scroll Controlled Scene</p>
+    <p>Interactive Three.js powered website</p>
+    <button>Get Started</button>
 </div>
-
-<div class="scroll-indicator">
-    Scroll ↓
-</div>
-
-<section class="section"></section>
-<section class="section"></section>
-<section class="section"></section>
 
 <script type="module">
-
 import * as THREE from 'https://unpkg.com/three@0.165.0/build/three.module.js';
 
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
     75,
-    window.innerWidth/window.innerHeight,
+    window.innerWidth / window.innerHeight,
     0.1,
     1000
 );
 
 const renderer = new THREE.WebGLRenderer({
-    antialias:true
+    antialias: true
 });
 
-renderer.setSize(
-    window.innerWidth,
-    window.innerHeight
-);
-
-renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio,2)
-);
-
+renderer.setSize(window.innerWidth, window.innerHeight);
 document
-.getElementById("canvas-container")
-.appendChild(renderer.domElement);
+    .getElementById('canvas-container')
+    .appendChild(renderer.domElement);
 
-camera.position.z = 6;
+// Sphere
+const geometry = new THREE.SphereGeometry(2, 64, 64);
 
-/* LIGHTS */
+const material = new THREE.MeshStandardMaterial({
+    color: 0x4f46e5,
+    metalness: 0.8,
+    roughness: 0.1
+});
 
-scene.add(
-    new THREE.AmbientLight(
-        0xffffff,
-        1.2
-    )
-);
-
-const pointLight =
-new THREE.PointLight(
-    0x00ffff,
-    25
-);
-
-pointLight.position.set(
-    5,
-    5,
-    5
-);
-
-scene.add(pointLight);
-
-/* OBJECT 1 */
-
-const sphere =
-new THREE.Mesh(
-    new THREE.SphereGeometry(
-        2,
-        64,
-        64
-    ),
-    new THREE.MeshStandardMaterial({
-        color:0x4f46e5,
-        metalness:1,
-        roughness:0.1,
-        emissive:0x1111ff,
-        emissiveIntensity:0.5
-    })
-);
-
+const sphere = new THREE.Mesh(geometry, material);
 scene.add(sphere);
 
-/* OBJECT 2 */
+// Lights
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+scene.add(ambientLight);
 
-const torus =
-new THREE.Mesh(
-    new THREE.TorusGeometry(
-        1.3,
-        0.35,
-        32,
-        100
-    ),
-    new THREE.MeshStandardMaterial({
-        color:0xff66cc,
-        metalness:1,
-        roughness:0.1
-    })
-);
+const pointLight = new THREE.PointLight(0x00ffff, 30);
+pointLight.position.set(5, 5, 5);
+scene.add(pointLight);
 
-torus.position.set(
-    8,
-    0,
-    -8
-);
+// Particle field
+const particleGeometry = new THREE.BufferGeometry();
 
-scene.add(torus);
+const particlesCount = 2000;
+const positions = new Float32Array(particlesCount * 3);
 
-/* OBJECT 3 */
-
-const cube =
-new THREE.Mesh(
-    new THREE.BoxGeometry(
-        2,
-        2,
-        2
-    ),
-    new THREE.MeshStandardMaterial({
-        color:0x00ffff,
-        metalness:1,
-        roughness:0.2
-    })
-);
-
-cube.position.set(
-    -8,
-    0,
-    -12
-);
-
-scene.add(cube);
-
-/* PARTICLES */
-
-const particleGeometry =
-new THREE.BufferGeometry();
-
-const particleCount = 2500;
-
-const positions =
-new Float32Array(
-    particleCount * 3
-);
-
-for(let i=0;i<particleCount*3;i++){
-    positions[i] =
-    (Math.random()-0.5)*40;
+for (let i = 0; i < particlesCount * 3; i++) {
+    positions[i] = (Math.random() - 0.5) * 25;
 }
 
 particleGeometry.setAttribute(
     'position',
-    new THREE.BufferAttribute(
-        positions,
-        3
-    )
+    new THREE.BufferAttribute(positions, 3)
 );
 
-const particleMaterial =
-new THREE.PointsMaterial({
-    color:0xffffff,
-    size:0.03
+const particleMaterial = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.03
 });
 
-const particles =
-new THREE.Points(
+const particles = new THREE.Points(
     particleGeometry,
     particleMaterial
 );
 
 scene.add(particles);
 
-/* MOUSE */
+camera.position.z = 6;
 
-let mouseX = 0;
-let mouseY = 0;
+function animate() {
+    requestAnimationFrame(animate);
 
-window.addEventListener(
-'mousemove',
-(e)=>{
+    sphere.rotation.y += 0.005;
+    sphere.rotation.x += 0.002;
 
-    mouseX =
-    (e.clientX /
-    window.innerWidth) * 2 - 1;
+    particles.rotation.y += 0.0005;
 
-    mouseY =
-   -(e.clientY /
-    window.innerHeight) * 2 + 1;
+    renderer.render(scene, camera);
+}
 
+animate();
+
+window.addEventListener('resize', () => {
+    camera.aspect =
+        window.innerWidth / window.innerHeight;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(
+        window.innerWidth,
+        window.innerHeight
+    );
 });
+</script>
 
-/* SCROLL */
-
-const scrollState = {
-    current:0,
-    target:0
-};
-
-window.addEventListener(
-'scroll',
-()=>{
-
-    const maxScroll =
-    document.body.scrollHeight -
-    window.innerHeight;
-
-    scrollState.target =
-    window.scrollY /
-    maxScroll;
-
-});
-
-/* ANIMATION */
-
-function animate(){
-
-    requestAnimationFrame
+</body>
+</html>
